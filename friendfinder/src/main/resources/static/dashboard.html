@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Friend Finder Dashboard</title>
+
+<style>
+body {
+    font-family: Arial;
+    background: #eef2f3;
+    margin: 0;
+}
+
+.header {
+    background: #2E7D32;
+    color: white;
+    padding: 15px;
+    text-align: center;
+    font-size: 22px;
+}
+
+.container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    padding: 20px;
+}
+
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    background: green;
+    color: white;
+    border: none;
+    margin-top: 10px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: darkgreen;
+}
+
+input {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+}
+
+.list-item {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    background: #f5f5f5;
+    padding: 8px;
+    border-radius: 5px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">Friend Finder Dashboard</div>
+
+<div class="container">
+
+<!-- ADD INTEREST -->
+<div class="card">
+<h3>Add Interest</h3>
+<input id="interest" placeholder="e.g. coding, music">
+<button onclick="addInterest()">Add</button>
+</div>
+
+<!-- VIEW INTEREST -->
+<div class="card">
+<h3>Your Interests</h3>
+<button onclick="getInterests()">Load</button>
+<div id="interestList"></div>
+</div>
+
+<!-- MATCH -->
+<div class="card">
+<h3>Find Matches</h3>
+<button onclick="findMatches()">Find</button>
+<div id="matchList"></div>
+</div>
+
+<!-- SEND REQUEST -->
+<div class="card">
+<h3>Send Friend Request</h3>
+<input id="receiverId" placeholder="Enter User ID">
+<button onclick="sendRequest()">Send</button>
+</div>
+
+<!-- VIEW REQUEST -->
+<div class="card">
+<h3>Incoming Requests</h3>
+<button onclick="viewRequests()">Load</button>
+<div id="requestList"></div>
+</div>
+
+</div>
+
+<script>
+
+let userId = localStorage.getItem("userId");
+
+// 🔴 IMPORTANT CHECK
+if (!userId) {
+    alert("⚠ Please login first!");
+    window.location.href = "index.html";
+}
+
+// ✅ ADD INTEREST
+function addInterest() {
+    let value = document.getElementById("interest").value;
+
+    if (!value) {
+        alert("Enter interest");
+        return;
+    }
+
+    fetch(`/interests/add?userId=${userId}&name=${value}`, {
+        method: 'POST'
+    })
+    .then(res => {
+        if (res.ok) {
+            alert("✅ Interest Added");
+            document.getElementById("interest").value = "";
+            getInterests();
+        } else {
+            alert("❌ Failed to add interest");
+        }
+    });
+}
+
+// ✅ GET INTERESTS
+function getInterests() {
+    fetch(`/interests/user/${userId}`)
+    .then(res => res.json())
+    .then(data => {
+
+        let output = "";
+
+        data.forEach(i => {
+            output += `
+                <div class="list-item">
+                    ${i.interestName}
+                    <button onclick="deleteInterest(${i.id})">❌</button>
+                </div>
+            `;
+        });
+
+        document.getElementById("interestList").innerHTML = output;
+    });
+}
+
+// ✅ DELETE INTEREST
+function deleteInterest(id) {
+    fetch(`/interests/delete/${id}`, {
+        method: 'DELETE'
+    })
+    .then(() => {
+        alert("Deleted");
+        getInterests();
+    });
+}
+
+// ✅ FIND MATCHES
+function findMatches() {
+    fetch(`/match/${userId}`)
+    .then(res => res.json())
+    .then(data => {
+
+        let output = "";
+
+        data.forEach(u => {
+            output += `
+                <div class="list-item">
+                    ${u.name} (${u.email})
+                </div>
+            `;
+        });
+
+        document.getElementById("matchList").innerHTML = output;
+    });
+}
+
+// ✅ SEND FRIEND REQUEST
+function sendRequest() {
+    let receiver = document.getElementById("receiverId").value;
+
+    if (!receiver) {
+        alert("Enter User ID");
+        return;
+    }
+
+    fetch(`/friends/send?sender=${userId}&receiver=${receiver}`, {
+        method: 'POST'
+    })
+    .then(res => {
+        if (res.ok) {
+            alert("✅ Request Sent");
+        } else {
+            alert("❌ Failed");
+        }
+    });
+}
+
+// ✅ VIEW REQUESTS
+function viewRequests() {
+    fetch(`/friends/requests/${userId}`)
+    .then(res => res.json())
+    .then(data => {
+
+        let output = "";
+
+        data.forEach(r => {
+            output += `
+                <div class="list-item">
+                    From User: ${r.senderId}
+                    <button onclick="acceptRequest(${r.id})">Accept</button>
+                </div>
+            `;
+        });
+
+        document.getElementById("requestList").innerHTML = output;
+    });
+}
+
+// ✅ ACCEPT REQUEST
+function acceptRequest(id) {
+    fetch(`/friends/accept/${id}`, {
+        method: 'PUT'
+    })
+    .then(() => {
+        alert("✅ Accepted");
+        viewRequests();
+    });
+}
+
+</script>
+
+</body>
+</html>

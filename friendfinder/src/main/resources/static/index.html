@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interest Based Friend Finder</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="background-orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <!-- Auth Container -->
+    <div id="auth-container" class="glass-card active">
+        <h1 class="logo glow-text">Friend Finder</h1>
+        <p class="subtitle">Find your tribe based on shared interests.</p>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('login')">Log In</button>
+            <button class="tab" onclick="switchTab('register')">Register</button>
+            <button class="tab" onclick="switchTab('admin')">Admin</button>
+        </div>
+
+        <form id="login-form" class="auth-form active" onsubmit="handleLogin(event)">
+            <input type="email" id="login-email" placeholder="Email Address" required>
+            <input type="password" id="login-password" placeholder="Password" required>
+            <button type="submit" class="primary-btn">Sign In</button>
+        </form>
+
+        <form id="register-form" class="auth-form" onsubmit="handleRegister(event)">
+            <input type="text" id="reg-name" placeholder="Full Name" required>
+            <input type="email" id="reg-email" placeholder="Email Address" required>
+            <input type="password" id="reg-password" placeholder="Password" required>
+            <button type="submit" class="primary-btn">Create Account</button>
+        </form>
+
+        <form id="admin-form" class="auth-form" onsubmit="handleAdminLogin(event)">
+            <input type="email" id="admin-email" placeholder="Admin Email (admin@test.com)" required>
+            <input type="password" id="admin-password" placeholder="Password (admin)" required>
+            <button type="submit" class="primary-btn">Enter Admin Panel</button>
+        </form>
+        
+        <p id="auth-message" class="message"></p>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div id="dashboard-container" class="glass-card hidden">
+        <nav class="navbar">
+            <h2 class="glow-text">Friend Finder</h2>
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <div style="position: relative; font-size: 1.5rem; cursor: pointer;" title="Notifications">
+                    🔔
+                    <span id="notif-badge" style="position: absolute; top: -5px; right: -5px; background: red; color: white; font-size: 0.7rem; padding: 2px 5px; border-radius: 50%; opacity: 0; transition: 0.3s;">0</span>
+                </div>
+                <button class="secondary-btn" onclick="logout()">Logout</button>
+            </div>
+        </nav>
+
+        <div class="dashboard-content">
+            <!-- Left Side: Profile & Interests -->
+            <div class="panel">
+                <h3>My Profile</h3>
+                <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 10px;">
+                    <div style="position: relative;">
+                        <img id="my-profile-pic" src="https://ui-avatars.com/api/?name=User&background=random" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; background: rgba(255,255,255,0.1); border: 2px solid var(--primary);">
+                        <input type="file" id="pfp-upload" style="display:none;" accept="image/*" onchange="uploadPfp(event)">
+                        <label for="pfp-upload" style="position: absolute; bottom: -5px; right: -5px; cursor: pointer; background: var(--primary); color: white; border-radius: 50%; padding: 4px; font-size: 0.8rem; box-shadow: 0 0 5px rgba(0,0,0,0.5);">📷</label>
+                    </div>
+                    <div>
+                        <p style="margin:0; font-size: 1.1rem;">Welcome, <strong id="user-name-display" class="glow-text">User</strong>!</p>
+                        <p style="font-size: 0.85rem; margin:0; color:#a1a1aa">Activity Score: <strong id="my-activity-score" style="color: gold;">0</strong> ⭐</p>
+                    </div>
+                </div>
+                
+                <h4 class="mt-4">My Interests</h4>
+                <div id="my-interests" class="interest-tags"></div>
+                
+                <form id="add-interest-form" onsubmit="handleAddInterest(event)" class="add-bar">
+                    <input type="text" id="new-interest" placeholder="Add a hobby (e.g., Coding)" required>
+                    <button type="submit" class="primary-btn small">+</button>
+                </form>
+
+                <h4 class="mt-4">My Friends</h4>
+                <div id="my-friends" class="user-list">
+                    <!-- Friends populated here -->
+                </div>
+                
+                <h4 class="mt-4">Top Active Users 👑</h4>
+                <div id="leaderboard" class="user-list" style="margin-top: 10px; background: rgba(255,215,0,0.05); border: 1px solid rgba(255,215,0,0.2); padding: 10px; border-radius: 10px;">
+                    <!-- Leaderboard populated here -->
+                </div>
+            </div>
+
+            <!-- Right Side: Suggestions & Friends -->
+            <div class="panel">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                    <h3 style="margin: 0;">Discover Friends</h3>
+                </div>
+                <input type="text" id="search-input" placeholder="Search by name or interest..." onkeyup="handleSearch()" style="margin-bottom: 15px; padding: 10px; width: 100%; border-radius: 10px; background: rgba(0,0,0,0.2); border: 1px solid var(--border-glass); color: white;">
+                
+                <p class="subtitle fade" style="margin-bottom: 10px; text-align: left;">Smart Suggestions (Match Score)</p>
+                <div id="suggested-friends" class="user-list">
+                    <!-- Cards will be populated here -->
+                </div>
+
+                <h3 class="mt-4">Pending Requests</h3>
+                <div id="pending-requests" class="user-list">
+                    <!-- Cards will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard Container -->
+    <div id="admin-container" class="glass-card hidden">
+        <nav class="navbar">
+            <h2 class="glow-text" style="color: #f59e0b;">🛠️ Admin Dashboard</h2>
+            <button class="secondary-btn" onclick="logoutAdmin()">Exit</button>
+        </nav>
+        <div class="dashboard-content" style="display:block;">
+            <div id="admin-notifications-section" style="display:none; margin-bottom: 25px;">
+                <!-- Alert banners injected here -->
+            </div>
+
+            <p style="color: #cbd5e1; margin-bottom: 20px;">Manage all registered users</p>
+            <div class="grid" id="admin-user-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+                <!-- All Users injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Modal -->
+    <div id="chat-modal" class="glass-card hidden" style="position: fixed; bottom: 20px; right: 20px; width: 350px; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.3); display: flex; flex-direction: column;">
+        <div class="chat-header" style="background: rgba(255,255,255,0.1); padding: 10px 15px; border-bottom: 1px solid rgba(255,255,255,0.2); display: flex; justify-content: space-between; align-items: center; border-radius: 15px 15px 0 0;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <img id="chat-user-pic" src="" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover; display: none;">
+                <h3 id="chat-user-name" style="margin: 0; font-size: 1.1rem;" class="glow-text">Chat</h3>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <button onclick="startSimulatedCall()" style="background: transparent; border: none; font-size: 1.2rem; cursor: pointer; color: #4ade80;" title="Call User">📞</button>
+                <button onclick="reportActiveUser()" style="background: transparent; border: none; font-size: 1.2rem; cursor: pointer; color: #f59e0b;" title="Report User">🚨</button>
+                <button onclick="blockActiveUser()" style="background: transparent; border: none; font-size: 1.2rem; cursor: pointer; color: #ef4444;" title="Block User">🚫</button>
+                <button class="btn-decline" onclick="closeChat()" style="background: transparent; font-size: 1.5rem; cursor: pointer;">×</button>
+            </div>
+        </div>
+        <div id="chat-messages" style="flex-grow: 1; height: 300px; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; background: rgba(0,0,0,0.1);">
+            <!-- Messages will appear here -->
+        </div>
+        <form id="chat-form" onsubmit="sendMessage(event)" style="padding: 10px; display: flex; gap: 10px; border-top: 1px solid rgba(255,255,255,0.2); align-items: center;">
+            <input type="file" id="chat-image-input" accept="image/*" style="display: none;" onchange="handleImageSelect(event)">
+            <label for="chat-image-input" style="cursor: pointer; font-size: 1.5rem; color: var(--primary);" title="Attach Image">📷</label>
+            <input type="text" id="chat-input" placeholder="Type a message or send image..." style="flex-grow: 1; padding: 8px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); color: white;">
+            <button type="submit" class="primary-btn small" style="border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; padding: 0;">➤</button>
+        </form>
+    </div>
+
+    <!-- Simulated Video Call Modal -->
+    <div id="call-modal" class="hidden" style="position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; display: flex; justify-content: center; align-items: center; flex-direction: column; backdrop-filter: blur(10px);">
+        <h2 id="call-status" class="glow-text" style="margin-bottom: 30px; font-size: 2rem;">Calling...</h2>
+        <div style="position: relative; margin-bottom: 40px;">
+            <div id="call-ring-anim" style="position: absolute; inset: -20px; border-radius: 50%; border: 2px solid #4ade80; animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;"></div>
+            <img id="call-user-pic" src="https://ui-avatars.com/api/?name=Friend" style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 4px solid var(--primary); box-shadow: 0 0 30px rgba(99, 102, 241, 0.5);">
+        </div>
+        <h3 id="call-user-name-display" style="font-size: 1.5rem; margin-bottom: 10px;">Friend Name</h3>
+        <p id="call-timer" style="color: #a1a1aa; font-family: monospace; font-size: 1.2rem; margin-bottom: 40px; display: none;">00:00</p>
+        
+        <div id="call-actions" style="display: flex; gap: 20px;">
+            <button onclick="endSimulatedCall()" style="background: #ef4444; color: white; border: none; padding: 15px 40px; border-radius: 30px; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: bold; box-shadow: 0 5px 15px rgba(239, 68, 68, 0.4);">
+                <span style="transform: rotate(135deg);">📞</span> End Call
+            </button>
+        </div>
+    </div>
+    
+    <style>
+        @keyframes ping {
+            75%, 100% { transform: scale(1.5); opacity: 0; }
+        }
+    </style>
+
+    <script src="app.js?v=2"></script>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+    <style>
+        body {
+            font-family: Arial;
+            background: #2E7D32;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .box {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            width: 300px;
+            text-align: center;
+        }
+
+        input {
+            width: 90%;
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background: green;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: darkgreen;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="box">
+    <h2>Login</h2>
+
+    <input type="email" id="email" placeholder="Enter Email">
+    <input type="password" id="password" placeholder="Enter Password">
+
+    <button onclick="login()">Login</button>
+
+    <br><br>
+
+    <button onclick="goHome()">Back</button>
+</div>
+
+<script>
+function login() {
+
+    let email = document.getElementById("email").value;
+    let password = document.getElementById("password").value;
+
+    fetch('/users/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            email: email,
+            password: password
+        })
+    })
+    .then(res => {
+        if (!res.ok) {
+            return res.text().then(err => { throw new Error(err); });
+        }
+        return res.json();
+    })
+    .then(data => {
+
+        console.log("LOGIN SUCCESS:", data);
+
+        localStorage.setItem("userId", data.id);
+
+        window.location.href = "dashboard.html";
+    })
+    .catch(err => {
+        alert("❌ " + err.message);
+    });
+}
+</script>
+
+</body>
+</html>
